@@ -1,21 +1,35 @@
 let db = connect("mongodb://root:test123@localhost:27017?authSource=admin");
 // USE technocite
-db = db.getSiblingDB('technocite');
+db = db.getSiblingDB('sample_mflix');
 
-// INSERT INTO students (name) VALUES ("Jean Sébastien")
-const inserted = db.students.insertOne({
-    name: "Jean Sébastien"
-});
+// SELECT title FROM movies WHERE released IS NULL
+const movies = db.movies
+.find({
+    $or: [
+        {
+            $and: [
+                {
+                    year: 2025,
+                },
+                {
+                    title: "Jurassic Park"
+                }
+            ]
+        },
+        {
+            year: 2020
+        }
+    ]
+})
+.projection({
+    title: true,
+    year: true,
+    _id: false
+})
+.sort({
+    year: -1
+})
+.limit(5);
 
-console.log(inserted);
+console.log(movies);
 
-const multiInsert = db.students.insertMany([
-    {
-        name : "Jammy"
-    },
-    {
-        name : "Fred"
-    }
-]);
-
-console.log(multiInsert);
