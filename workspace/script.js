@@ -1,35 +1,34 @@
 let db = connect("mongodb://root:test123@localhost:27017?authSource=admin");
-// USE technocite
-db = db.getSiblingDB('sample_mflix');
+db = db.getSiblingDB("sample_mflix");
 
-// SELECT title FROM movies WHERE released IS NULL
-const movies = db.movies
-.find({
-    $or: [
-        {
-            $and: [
-                {
-                    year: 2025,
-                },
-                {
-                    title: "Jurassic Park"
-                }
-            ]
-        },
-        {
-            year: 2020
+const result = db.movies.aggregate([
+    {
+        $lookup: {
+            from: 'comments',
+            localField: '_id',
+            foreignField: 'movie_id',
+            as: 'comments'
         }
-    ]
-})
-.projection({
-    title: true,
-    year: true,
-    _id: false
-})
-.sort({
-    year: -1
-})
-.limit(5);
+    },
+    {
+        $match: {
+            comments: {
+                $ne: []
+            }
+        }
+    },
+    {
+        $limit: 5
+    },
+    {
+        $project: {
+            title: true,
+            comments: {
+                name: true,
+                email: true
+            }
+        }
+    }
+]);
 
-console.log(movies);
-
+console.log(result);
