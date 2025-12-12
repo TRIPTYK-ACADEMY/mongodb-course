@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { UserModel } from "./schema.ts";
+import argon from "argon2";
 
 async function init() {
     try { 
@@ -13,31 +14,33 @@ async function init() {
         console.log("Une erreur est survenue :", e);
     }
 
-    const users = await UserModel.findOne({
-        _id: new mongoose.Types.ObjectId("59b99db9cfa9a34dcd7885bf")
+    const passwordClear = "test123*";
+    const hashed = await argon.hash(passwordClear);
+
+    const userPassword = new UserModel({
+        firstName: 'Hash',
+        lastName: 'Man',
+        password: hashed,
+        email: "hash.man@localhost.com"
     });
 
-    users.overwrite({
-        lastName: 'Amaury',
-        firstName: 'Deflorenne',
-        email: "amaury@triptyk.eu",
-        password: "123456789"
+    await userPassword.save();
+
+    // l'utilisateur envoie son login/mot de passe
+    const login = "hash.man@localhost.com";
+    const password = "test123";
+
+    // côté backend
+    const user = await UserModel.findOne({
+        email: login
     });
 
-    // getter get() est appelé
-    console.log(users.fullName);
-    // setter set() est appelé
-    users.fullName = "Amaury Larry";
-
-    await users.save();
-
-    console.log(users);
-
-    // await UserModel.findAndSave(users._id.toString(), {
-    //     lastName: 'Amaury',
-    //     firstName: "Larry",
-    //     email: "amaury@triptyk.eu"
-    // });
+    // verification du mot de passe
+    if (await user.verify(password)) {
+        console.log("On connecte l'utilisateur")
+    }else {
+        console.log("Mauvais mot de passe")
+    }
 
 
 }
