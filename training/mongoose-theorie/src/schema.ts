@@ -1,5 +1,24 @@
 import { Model, model, Schema } from "mongoose";
 
+class BlahBlah {
+    private firstName: string;
+    private lastName: string;
+
+    set fullName(value) {
+        this.firstName = value.split(' ')[0];
+        this.lastName = value.split(' ')[1];
+    }
+
+    get fullName() {
+        return `${this.firstName} ${this.lastName}`
+    }
+}
+
+
+const blablah = new BlahBlah();
+blablah.fullName = "test";
+
+
 const addressSchema = new Schema({
     street: {
         type: String,
@@ -40,9 +59,14 @@ interface UserMethodsInterface {
     getFullName(): string;
 }
 
+// une virtuelle, équivalente à un getter/setter d'une classe
+interface UserVirtualsInterface {
+    fullName: string;
+}
+
 // interface qui défini les méthodes statiques liées au Modèle
 interface UserStaticsInterface {
-    findAndSave(): void;
+    findAndSave(id: string, data: Partial<UserInterface>): Promise<void>;
 }
 
 const schema = new Schema<
@@ -53,6 +77,7 @@ const schema = new Schema<
     // les méthodes
     UserMethodsInterface,
     {},
+    UserVirtualsInterface,
     // les méthodes statiques
     UserStaticsInterface
 >({
@@ -91,8 +116,25 @@ const schema = new Schema<
         }
     },
     statics: {
-        findAndSave() {
+        // récupère le record, le modifie et le sauvegarde
+        async findAndSave(id: string, data: UserInterface) {
+            const record = await this.findById(id);
 
+            // mettre les propriétés de data dans le record
+            Object.assign(record, data);
+
+            await record.save();
+        }
+    },
+    virtuals: {
+        fullName: {
+            get() {
+                return `${this.firstName} + ${this.lastName}`;
+            },
+            set(value: string) {
+                this.firstName = value.split(" ")[0];
+                this.lastName = value.split(" ")[1];
+            }
         }
     }
 });
