@@ -1,24 +1,15 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js';
-import express from 'express';
+import { Client, Events, GatewayIntentBits } from "discord.js";
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildMessages] });
-
-client.once(Events.ClientReady, (readyClient) => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-const app = express();
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-	console.log(`Express server listening on port ${PORT}`);
+client.once(Events.ClientReady, () => {
+    console.log("Le bot est prêt à pinger");
 });
 
 client.on(Events.MessageCreate, (message) => {
-	console.log(`Message from ${message.author.tag}: ${message.content}`);
+    console.log("Un message a été posté par", message.author.displayName, message.content)
 });
 
-await client.login(process.env.DISCORD_BOT_TOKEN);
-
-console.log('Bot is running...');
-
+await client.login(process.env.BOT_TOKEN);
